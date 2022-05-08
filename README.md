@@ -1,10 +1,11 @@
-# Connection PostgreSQL, NodeJS and Express Server | Practice Launch X
+# Connection PostgreSQL, NodeJS, Express Server and CORS | Practice Launch X
 
 ### Necessary technologies
 - Node.js
 - Prisma
 - Express
 - PostgreSQL
+- CORS
 
 ### Steps
 
@@ -406,7 +407,7 @@ app.delete('/students/:id', async (req, res) => {
 });
 ```
 
-13. Open Postman and add the requests for each endpoint
+18. Open Postman and add the requests for each endpoint
 
 ### Create a new student:
 Type: POST 
@@ -487,3 +488,111 @@ Response:
 }
 ```
 ![image](https://user-images.githubusercontent.com/48570016/167271523-234991ee-ecb6-46f8-a29f-7c18d6a62abf.png)
+
+
+### CORS
+19. Install CORS dependency (`npm install cors --save`)
+
+20. Add CORS to server
+```javascript
+// CORS
+const cors = require("cors");
+const corsOptions = {
+  origin: "http://localhost:8081"
+};
+```
+
+21. Add missionConmmander model in schema.prisma
+```javascript
+model missionCommander {
+  id Int @id @default(autoincrement())
+  name String @unique
+  username String @db.VarChar(255)
+  mainStack String @db.VarChar(255)
+  currentEnrollment Boolean @default(false)
+  hasAzureCertification Boolean @default(false)
+  dateCreated DateTime @default(now())
+  lastUpdated DateTime @updatedAt
+}
+```
+
+22. Create migration for missionCommander model (`npx prisma migrate dev --name init`)
+When you run this command, it will generate the table `missionCommander` on the database.
+
+23. Add new registers on your file prisma/seed.js and run it
+```javascript
+const carlo = await prisma.missionCommander.upsert({
+  where: { name: 'Carlo Gilmar' },
+  update: {},
+  create: {
+    name: 'Carlo Gilmar',
+    username: 'carlogilmar',
+    mainStack: 'Node',
+    currentEnrollment: true,
+    hasAzureCertification: true
+  },
+});
+
+const fernanda = await prisma.missionCommander.upsert({
+  where: { name: 'Fernanda Ochoa' },
+  update: {},
+  create: {
+    name: 'Fernanda Ochoa',
+    username: 'FernandaOchoa',
+    mainStack: 'Java',
+    currentEnrollment: true,
+    hasAzureCertification: true
+  },
+});
+
+console.log('Create 2 mission commanders');
+```
+
+24. Add CRUD endpoints for missionCommander in server.js
+```javascript
+app.get('/mission-commanders', async (req, res) => {
+  const allMissionCommanders =  await prisma.missionCommander.findMany({});
+  res.json(allMissionCommanders);
+});
+
+app.get('/mission-commanders/:id', async (req, res) => {
+  const id = req.params.id;
+  const missioncommander = await prisma.missionCommander.findUnique({where: {id: parseInt(id)}});
+  res.json(missioncommander);
+});
+
+app.post('/mission-commanders', async (req, res) => {
+  const missioncommander = {
+    name: req.body.name,
+    username: req.body.username,
+    mainStack: req.body.mainStack,
+    currentEnrollment: req.body.currentEnrollment,
+    hasAzureCertification: req.body.hasAzureCertification
+
+  };
+  const message = 'Mission Commander creado.';
+  await prisma.missionCommander.create({data: missioncommander});
+  return res.json({message});
+});
+
+app.put('/mission-commanders/:id', async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  await prisma.missionCommander.update({
+    where: {
+      id: id
+    },
+    data: {
+      mainStack: req.body.mainStack
+    }
+  })
+
+  return res.json({message: "Actualizado correctamente"});
+});
+
+app.delete('/mission-commanders/:id', async (req, res) => {
+  const id = parseInt(req.params.id);
+  await prisma.missionCommander.delete({where: {id: id}});
+  return res.json({message: "Eliminado correctamente"});
+});
+```

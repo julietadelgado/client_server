@@ -101,6 +101,32 @@ const prisma = new PrismaClient();
     });
 
     console.log('Create 3 students');
+
+    const carlo = await prisma.missionCommander.upsert({
+      where: { name: 'Carlo Gilmar' },
+      update: {},
+      create: {
+        name: 'Carlo Gilmar',
+        username: 'carlogilmar',
+        mainStack: 'Node',
+        currentEnrollment: true,
+        hasAzureCertification: true
+      },
+    });
+
+    const fernanda = await prisma.missionCommander.upsert({
+      where: { name: 'Fernanda Ochoa' },
+      update: {},
+      create: {
+        name: 'Fernanda Ochoa',
+        username: 'FernandaOchoa',
+        mainStack: 'Java',
+        currentEnrollment: true,
+        hasAzureCertification: true
+      },
+    });
+    
+    console.log('Create 2 mission commanders');
   } catch(e) {
     console.error(e);
     process.exit(1);
